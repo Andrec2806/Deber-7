@@ -9,25 +9,31 @@
       font-family: Arial, sans-serif;
       margin: 30px;
     }
-    canvas {
-      max-width: 600px;
-    }
     input, button {
       padding: 8px;
       font-size: 1em;
+    }
+    #container {
+      max-width: 800px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 500px !important;
     }
   </style>
 </head>
 <body>
   <h2>Graficador de Funciones</h2>
-  <p>Ingresa una función de <strong>x</strong> (por ejemplo: <code>Math.sin(x)</code>, <code>x*x</code>, <code>Math.log(x)</code>):</p>
-  <input type="text" id="funcion" placeholder="Ejemplo: x*x" value="x*x" />
-  <button onclick="graficar()">Graficar</button>
+  <div id="container">
+    <p>Ingresa una función de <strong>x</strong> (por ejemplo: <code>Math.sin(x)</code>, <code>x*x</code>, <code>Math.log(x)</code>):</p>
+    <input type="text" id="funcion" placeholder="Ejemplo: x*x" value="x*x" />
+    <button onclick="graficar()">Graficar</button>
 
-  <p><strong>Dominio:</strong> <span id="dominio">[-10, 10]</span></p>
-  <p><strong>Rango estimado:</strong> <span id="rango"></span></p>
+    <p><strong>Dominio:</strong> <span id="dominio">[-10, 10]</span></p>
+    <p><strong>Rango estimado:</strong> <span id="rango"></span></p>
 
-  <canvas id="grafica" width="600" height="400"></canvas>
+    <canvas id="grafica"></canvas>
+  </div>
 
   <script>
     let chart;
@@ -45,24 +51,23 @@
         try {
           const y = eval(funcionStr.replace(/x/g, `(${x})`));
           if (isFinite(y)) {
-            dominioX.push(x);
+            dominioX.push(x.toFixed(2));
             valoresY.push(y);
           } else {
-            dominioX.push(x);
+            dominioX.push(x.toFixed(2));
             valoresY.push(null);
           }
-        } catch (e) {
+        } catch {
+          dominioX.push(x.toFixed(2));
           valoresY.push(null);
         }
       }
 
-      // Estimar el rango
       const yValidos = valoresY.filter(y => y !== null && !isNaN(y));
       const minY = Math.min(...yValidos).toFixed(2);
       const maxY = Math.max(...yValidos).toFixed(2);
       document.getElementById("rango").textContent = `[${minY}, ${maxY}]`;
 
-      // Graficar
       const ctx = document.getElementById("grafica").getContext("2d");
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
@@ -75,23 +80,28 @@
             borderColor: 'blue',
             borderWidth: 2,
             pointRadius: 0,
-            spanGaps: true
+            spanGaps: true,
+            fill: false,
           }]
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           scales: {
             x: {
-              title: {
-                display: true,
-                text: 'x'
-              }
+              title: { display: true, text: 'x' }
             },
             y: {
-              title: {
-                display: true,
-                text: 'f(x)'
+              title: { display: true, text: 'f(x)' },
+              ticks: {
+                callback: function(value) {
+                  return value.toFixed(2);
+                }
               }
             }
+          },
+          plugins: {
+            legend: { display: true },
           }
         }
       });
